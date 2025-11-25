@@ -3,15 +3,14 @@ import numpy as np
 
 path = "input3.jpg"
 
-# Read image in grayscale (for frequency) and RGB (for spatial)
 img_gray = Image.open(path).convert("L")     
 img_rgb  = Image.open(path).convert("RGB")   
 
 gray = np.array(img_gray)
 rgb  = np.array(img_rgb)
 
-print("\nGrayscale Resolution :", gray.shape)     # (H, W)
-print("RGB Resolution       :", rgb.shape)        # (H, W, 3)
+print("\nGrayscale Resolution :", gray.shape)     
+print("RGB Resolution       :", rgb.shape)        
 
 # ---------------------------
 # FREQUENCY SAMPLING (FFT)
@@ -22,28 +21,23 @@ def freq_sampling(im, f):
     f  : sampling factor (2,4,8,16)
     Keeps center (H//f, W//f) of the FFT spectrum.
     """
-    F = np.fft.fftshift(np.fft.fft2(im))   # 2D FFT → center low frequency
+    F = np.fft.fftshift(np.fft.fft2(im))   
     H, W = F.shape
 
-    # crop dimensions
     h2 = max(1, H // f)
     w2 = max(1, W // f)
 
     F_low = np.zeros_like(F)
 
-    # find center cut area
     hs = (H // 2) - (h2 // 2)
     he = hs + h2
     ws = (W // 2) - (w2 // 2)
     we = ws + w2
 
-    # keep low-frequency region
     F_low[hs:he, ws:we] = F[hs:he, ws:we]
 
-    # back to spatial domain
     out = np.abs(np.fft.ifft2(np.fft.ifftshift(F_low)))
 
-    # normalize to 0–255
     mn, mx = out.min(), out.max()
     if mx - mn < 1e-9:
         out_u8 = out.astype(np.uint8)
@@ -70,7 +64,6 @@ factors = [2, 4, 8, 16]
 
 for f in factors:
 
-    # frequency (grayscale)
     out_f = freq_sampling(gray, f)
     fname_f = f"q3_freq_1_{f}.png"
     Image.fromarray(out_f).save(fname_f)
